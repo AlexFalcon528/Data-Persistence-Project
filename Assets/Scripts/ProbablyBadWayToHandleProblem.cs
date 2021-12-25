@@ -8,6 +8,7 @@ public class ProbablyBadWayToHandleProblem : MonoBehaviour
     void Awake()
     {
         MainManager.Instance.BeginGame();
+        MainManager.Instance.m_Started = false;
     }
 
     // Update is called once per frame

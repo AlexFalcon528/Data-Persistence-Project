@@ -15,13 +15,13 @@ public class MainManager : MonoBehaviour
     public Text ScoreText;
     public GameObject GameOverText;
     
-    private bool m_Started = false;
+    public bool m_Started = false;
     private int m_Points;
-    
-    private bool m_GameOver = false;
+    private Vector3 BallStart;
+    public static bool m_GameOver = false;
     public string PlayerName;
     public int HighScore;
-
+    public string HighScorePlayerName;
     public void Awake()
     {
         if (Instance != null)
@@ -50,6 +50,9 @@ public class MainManager : MonoBehaviour
                 brick.onDestroyed.AddListener(AddPoint);
             }
         }
+        GameOverText.GetComponent<Text>().enabled = false;
+        m_GameOver = false;
+        m_Points = 0;
     }
     public void BeginGame()
     {
@@ -58,16 +61,18 @@ public class MainManager : MonoBehaviour
         ScoreText = GameObject.Find("ScoreText").GetComponent<Text>();
         GameOverText = GameObject.Find("GameoverText");
         StartNew();
+        Load();
+        HighScoreText.text = $"High score: {HighScorePlayerName} , {HighScore}";
+
     }
     private void Update()
     {
-        HighScoreText.text = $"{PlayerName} : {m_Points}";
         if (!m_Started)
         {
 
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                Debug.Log("Woo Yeah");
+                //Debug.Log("Woo Yeah");
                 m_Started = true;
                 float randomDirection = Random.Range(-1.0f, 1.0f);
                 Vector3 forceDir = new Vector3(randomDirection, 1, 0);
@@ -79,11 +84,25 @@ public class MainManager : MonoBehaviour
         }
         else if (m_GameOver)
         {
+            //Debug.Log(m_GameOver);
+            GameOverText.GetComponent<Text>().enabled = m_GameOver;
+            //Debug.Log("So way back in the mine");
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                SceneManager.LoadScene(1);
+                //Debug.Log("Aw man");
+                Save();
+                SceneManager.LoadScene(0);
+                SceneManager.UnloadSceneAsync(1);
+                m_Started = false;
+                m_GameOver = false;
             }
+            
         }
+        if (HighScoreText != null && m_Points > HighScore)
+        {
+            HighScoreText.text = $"{PlayerName} : {m_Points}";
+        }
+
     }
 
     void AddPoint(int point)
@@ -94,23 +113,30 @@ public class MainManager : MonoBehaviour
 
     public void GameOver()
     {
-        Save();
+        //Debug.Log(m_GameOver);
         m_GameOver = true;
-        GameOverText.SetActive(true);
+        //Debug.Log(m_GameOver);
+        
     }
     [System.Serializable]
     class SaveData
     {
-        public string PlayerName;
-        public int HighScore;
+        public string SavedPlayerName;
+        public int SavedHighScore;
     }
     public void Save()
     {
         SaveData data = new SaveData();
-        data.PlayerName = PlayerName;
+        data.SavedPlayerName = PlayerName;
         if (m_Points > HighScore)
         {
-            data.HighScore = m_Points;
+            data.SavedPlayerName = PlayerName;
+            data.SavedHighScore = m_Points;
+        }
+        else
+        {
+            data.SavedPlayerName = HighScorePlayerName;
+            data.SavedHighScore = HighScore;
         }
         string json = JsonUtility.ToJson(data);
 
@@ -124,8 +150,8 @@ public class MainManager : MonoBehaviour
             string json = File.ReadAllText(path);
             SaveData data = JsonUtility.FromJson<SaveData>(json);
 
-            PlayerName = data.PlayerName;
-            HighScore = data.HighScore;
+            HighScorePlayerName = data.SavedPlayerName;
+            HighScore = data.SavedHighScore;
         }
     }
  }

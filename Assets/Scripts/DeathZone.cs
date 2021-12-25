@@ -9,6 +9,7 @@ public class DeathZone : MonoBehaviour
 
     private void OnCollisionEnter(Collision other)
     {
+        //Debug.Log("Got our pickaxe swingin from side to side");
         Destroy(other.gameObject);
         Manager.GameOver();
     }
